@@ -1,12 +1,14 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RootState } from '../../app/store';
+import { BuildingItem } from "./BuildingQueryResult";
 
 export interface MapState {
   bound: kakao.maps.LatLngBounds
+  result: BuildingItem[]
 }
 
 const initialState: MapState = {
-  bound: new kakao.maps.LatLngBounds()
+  bound: new kakao.maps.LatLngBounds(),
+  result: []
 };
 
 export const mapSlice = createSlice({
@@ -15,12 +17,13 @@ export const mapSlice = createSlice({
   reducers: {
     setBound: (state, action: PayloadAction<kakao.maps.LatLngBounds>) => {
       state.bound = action.payload;
+    },
+    setResult: (state, action: PayloadAction<BuildingItem[]>) => {
+      state.result = action.payload;
     }
   },
 });
 
-export const { setBound } = mapSlice.actions;
-
-export const selectBound = (state: RootState) => state.map.bound;
+export const { setBound, setResult } = mapSlice.actions;
 
 export default mapSlice.reducer;
