@@ -1,9 +1,8 @@
-import React from 'react';
+import React, {useState} from 'react';
 
-import { Map } from "react-kakao-maps-sdk";
+import {Map, MapMarker} from "react-kakao-maps-sdk";
 import { gql, useQuery } from "@apollo/client";
-import { useDispatch } from "react-redux";
-import { BuildingQueryResult } from "./BuildingQueryResult";
+import {BuildingItem, BuildingQueryResult} from "./BuildingQueryResult";
 
 const mapQuery = gql`
   query ($north: Float!, $south: Float!, $west: Float!, $east: Float!) {
@@ -18,11 +17,36 @@ const mapQuery = gql`
 
 
 export function CampusMap() {
-  const { data, refetch } = useQuery<BuildingQueryResult>(mapQuery);
-  if (data !== undefined) {
-    console.log(data);
+  const EventMarkerContainer = ({ position, building }: { position: { lat: number, lng: number }, building: BuildingItem }) => {
+    const [isVisible, setIsVisible] = useState(false)
+
+    return (
+      <MapMarker
+        position={position}
+        onClick={() => setIsVisible(!isVisible)}>
+        {isVisible &&
+          <div style={{
+            width: '200px',
+            backgroundColor: 'white',
+            padding: '5px',
+            borderRadius: '10px',
+            textAlign: "center",
+            textOverflow: "ellipsis",
+          }}>
+            {building.name}
+            <br/>
+            { building.url && (
+              <a href={building.url} target="_blank" rel="noreferrer">
+                내부 구조도
+              </a>
+            )}
+          </div>
+        }
+      </MapMarker>
+    )
   }
 
+  const { data, refetch } = useQuery<BuildingQueryResult>(mapQuery);
   return (
     <Map
       center={{ lat: 37.29753535479288, lng: 126.83544659517665 }}
@@ -36,6 +60,14 @@ export function CampusMap() {
           east: map.getBounds().getNorthEast().getLng()
         }).then((result) => {});
       }}
-    />
+    >
+      {data?.building.map((building) => (
+        <EventMarkerContainer
+          key={building.name}
+          position={{ lat: building.latitude, lng: building.longitude }}
+          building={building}
+        />
+      ))}
+    </Map>
   );
 }
