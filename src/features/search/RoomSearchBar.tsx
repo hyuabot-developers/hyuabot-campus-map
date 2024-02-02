@@ -2,6 +2,9 @@ import {useEffect, useMemo, useRef, useState} from "react";
 import {Autocomplete, debounce, TextField} from "@mui/material";
 import {gql, useQuery} from "@apollo/client";
 import {RoomItem, RoomQueryResult} from "./RoomQueryResult";
+import {useMap} from "react-kakao-maps-sdk";
+import {useDispatch} from "react-redux";
+import {setResult} from "../map/mapSlice";
 
 const roomQuery = gql`
   query ($name: String!) {
@@ -20,6 +23,7 @@ export default function RoomSearchBar() {
   const [inputValue, setInputValue] = useState('');
   const [options, setOptions] = useState<readonly RoomItem[]>([]);
   const { refetch } = useQuery<RoomQueryResult>(roomQuery);
+  const dispatch = useDispatch();
   const fetch = useMemo(
     () =>
       debounce(
@@ -84,6 +88,15 @@ export default function RoomSearchBar() {
       onChange={(event, newValue) => {
         setOptions(newValue ? [newValue, ...options] : options);
         setValue(newValue);
+        if (newValue === null) {
+          return
+        }
+        dispatch(setResult([{
+          name: `${newValue.name} (${newValue.buildingName} ${newValue.number}호)`,
+          latitude: newValue.latitude,
+          longitude: newValue.longitude,
+          url: null
+        }]));
       }}
       onInputChange={(event, newInputValue) => {
         setInputValue(newInputValue);
@@ -91,7 +104,7 @@ export default function RoomSearchBar() {
       renderInput={(params) => <TextField {...params} label="강의실 검색" />}
       renderOption={(props, option) => {
         return (
-          <li {...props}>
+          <li {...props} key={`${option.name} ${option.buildingName} ${option.number}호`}>
             {option.name} ({option.buildingName} {option.number}호)
           </li>
         );

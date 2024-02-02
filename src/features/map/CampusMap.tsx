@@ -3,6 +3,9 @@ import React, {useState} from 'react';
 import {Map, MapMarker} from "react-kakao-maps-sdk";
 import { gql, useQuery } from "@apollo/client";
 import {BuildingItem, BuildingQueryResult} from "./BuildingQueryResult";
+import {store} from "../../app/store";
+import {useDispatch} from "react-redux";
+import {setResult} from "./mapSlice";
 
 const mapQuery = gql`
   query ($north: Float!, $south: Float!, $west: Float!, $east: Float!) {
@@ -46,7 +49,12 @@ export function CampusMap() {
     )
   }
 
-  const { data, refetch } = useQuery<BuildingQueryResult>(mapQuery);
+  const { refetch } = useQuery<BuildingQueryResult>(mapQuery);
+  const [ buildings, setBuildings ] = useState<BuildingItem[]>([]);
+  const dispatch = useDispatch();
+  store.subscribe(() => {
+    setBuildings(store.getState().map.result);
+  });
   return (
     <Map
       center={{ lat: 37.29753535479288, lng: 126.83544659517665 }}
@@ -58,10 +66,12 @@ export function CampusMap() {
           south: map.getBounds().getSouthWest().getLat(),
           west: map.getBounds().getSouthWest().getLng(),
           east: map.getBounds().getNorthEast().getLng()
-        }).then((result) => {});
+        }).then((result) => {
+          dispatch(setResult(result.data?.building));
+        });
       }}
     >
-      {data?.building.map((building) => (
+      {buildings?.map((building) => (
         <EventMarkerContainer
           key={building.name}
           position={{ lat: building.latitude, lng: building.longitude }}
