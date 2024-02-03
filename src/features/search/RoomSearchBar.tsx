@@ -1,8 +1,7 @@
-import {useEffect, useMemo, useRef, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {Autocomplete, debounce, TextField} from "@mui/material";
 import {gql, useQuery} from "@apollo/client";
 import {RoomItem, RoomQueryResult} from "./RoomQueryResult";
-import {useMap} from "react-kakao-maps-sdk";
 import {useDispatch} from "react-redux";
 import {setResult} from "../map/mapSlice";
 
@@ -37,7 +36,7 @@ export default function RoomSearchBar() {
         },
         400,
       ),
-    [],
+    [refetch],
   );
 
   useEffect(() => {
